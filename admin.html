@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Admin Panel - Pharmacy Harkat</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f7f6;
+  padding: 40px;
+}
+
+.box {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  max-width: 1200px;
+  margin: auto;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+h2, h3 { text-align:center; color:#2e7d32; }
+
+input, select, button {
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+
+button {
+  background:#2e7d32;
+  color:white;
+  border:none;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+button:hover { background:#1b5e20; }
+
+/* Produits horizontaux */
+.product-list-horizontal {
+  display:flex;
+  flex-wrap:wrap;
+  gap:20px;
+  justify-content:flex-start;
+}
+
+.product-list-horizontal .product {
+  flex:0 0 280px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:10px;
+  border-radius:10px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.05);
+}
+
+.product img {
+  width:100%;
+  border-radius:8px;
+  margin-bottom:10px;
+}
+
+.product-actions {
+  display:flex;
+  gap:5px;
+  margin-top:10px;
+}
+</style>
+</head>
+<body>
+
+<div class="box">
+  <h2>Admin Panel</h2>
+  <button onclick="logout()">Logout</button>
+  <hr>
+  <h3>Ajouter un produit</h3>
+
+  <input id="name" placeholder="Nom du produit">
+  <input type="file" id="file">
+  <select id="category">
+    <option value="visage">Soin visage</option>
+    <option value="corps">Soin corps</option>
+    <option value="ortho">Orthopédie</option>
+    <option value="bebe">Bébé</option>
+    <option value="supplement">Compléments</option>
+    <option value="materiel">Matériel Médical</option>
+  </select>
+  <select id="available">
+    <option value="true">Disponible</option>
+    <option value="false">Indisponible</option>
+  </select>
+  <button onclick="addProduct()">Ajouter</button>
+  <hr>
+
+  <h3>Liste des produits</h3>
+  <div id="list" class="product-list-horizontal"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB-RJIVsID45XTV2OrPfJbYBi3NQTJl5Eo",
+  authDomain: "pharmacy-harkat.firebaseapp.com",
+  projectId: "pharmacy-harkat"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// 🔐 Vérification admin
+if(localStorage.getItem("admin") !== "true"){
+  window.location.href = "login.html";
+}
+
+// Ajouter produit
+window.addProduct = async function() {
+  const name = document.getElementById("name").value;
+  const file = document.getElementById("file").files[0];
+  const category = document.getElementById("category").value;
+  const available = document.getElementById("available").value === "true";
+
+  if(!name || !file){
+    alert("Remplis tous les champs");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = async function(e){
+    const imageBase64 = e.target.result;
+    await addDoc(collection(db, "products"), {
+      name, image:imageBase64, category, available
+    });
+    alert("Produit ajouté ✅");
+    loadProducts();
+  }
+  reader.readAsDataURL(file);
+}
+
+// Charger produits
+async function loadProducts(){
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  const snapshot = await getDocs(collection(db, "products"));
+  snapshot.forEach(d => {
+    const p = d.data();
+    list.innerHTML += `
+      <div class="product">
+        <img src="${p.image}" alt="${p.name}">
+        <p><strong>${p.name}</strong></p>
+        <p>${p.category}</p>
+        <p style="color:${p.available ? 'green':'red'}">${p.available ? 'Disponible':'Indisponible'}</p>
+        <div class="product-actions">
+          <button onclick="toggle('${d.id}', ${p.available})">
+            ${p.available ? "Indisponible":"Disponible"}
+          </button>
+          <button onclick="remove('${d.id}')">Supprimer</button>
+        </div>
+      </div>
+    `;
+  });
+}
+
+// Supprimer produit
+window.remove = async function(id){
+  await deleteDoc(doc(db, "products", id));
+  loadProducts();
+}
+
+// Toggle disponibilité
+window.toggle = async function(id, current){
+  await updateDoc(doc(db, "products", id), { available: !current });
+  loadProducts();
+}
+
+// Logout
+window.logout = function(){
+  localStorage.removeItem("admin");
+  window.location.href = "login.html";
+}
+
+// Initialiser
+loadProducts();
+</script>
+
+</body>
+</html>

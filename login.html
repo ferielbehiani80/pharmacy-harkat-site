@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Connexion Admin - Pharmacy Harkat</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  margin:0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #e8f5e9, #ffffff);
+}
+
+.login-box {
+  background:white;
+  padding:50px 40px;
+  border-radius:15px;
+  box-shadow:0 15px 30px rgba(0,0,0,0.1);
+  text-align:center;
+  width:320px;
+  transition: transform 0.3s ease;
+}
+
+.login-box:hover {
+  transform: scale(1.03);
+}
+
+.login-box h2 {
+  margin-bottom:25px;
+  color:#2e7d32;
+}
+
+.login-box input {
+  width:100%;
+  padding:12px;
+  margin:10px 0;
+  border-radius:10px;
+  border:1px solid #ccc;
+  font-size:14px;
+}
+
+.login-box button {
+  padding:12px 20px;
+  width:100%;
+  background:#2e7d32;
+  color:white;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  font-size:16px;
+  transition:0.3s;
+}
+
+.login-box button:hover {
+  background:#1b5e20;
+}
+
+.error-msg {
+  color:red;
+  font-size:14px;
+  margin-top:10px;
+  opacity:0;
+  transition: opacity 0.3s;
+}
+
+.error-msg.show {
+  opacity:1;
+}
+</style>
+</head>
+<body>
+
+<div class="login-box">
+  <h2>Connexion Employé</h2>
+  <input type="password" id="pass" placeholder="Mot de passe">
+  <button id="login-btn">Se connecter</button>
+  <p class="error-msg" id="error-msg"></p>
+</div>
+
+<script>
+// Mot de passe simple pour les employés internes
+const EMPLOYEE_PASSWORD = "1234"; // tu peux changer ce mot de passe
+const loginBtn = document.getElementById("login-btn");
+const errorMsg = document.getElementById("error-msg");
+
+loginBtn.addEventListener("click", function() {
+  const pass = document.getElementById("pass").value.trim();
+  if(pass === EMPLOYEE_PASSWORD){
+    // Stocker l'état admin pour accès à admin.html
+    localStorage.setItem("admin","true");
+    // Redirection vers la page admin
+    window.location.href = "admin.html";
+  } else {
+    errorMsg.innerText = "Mot de passe incorrect ❌";
+    errorMsg.classList.add("show");
+    setTimeout(() => errorMsg.classList.remove("show"), 2500);
+  }
+});
+
+// Appuyer sur Entrée pour valider le mot de passe
+document.getElementById("pass").addEventListener("keypress", function(e){
+  if(e.key === "Enter") loginBtn.click();
+});
+</script>
+
+</body>
+</html>
